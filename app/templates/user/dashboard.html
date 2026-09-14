@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — {{ user.full_name }}{% endblock %}
+{% block topbar_title %}Dashboard Saya{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu</span>
+<a href="{{ url_for('user.dashboard') }}" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
+<a href="{{ url_for('user.add_saving') }}"><span class="nav-icon">💰</span> Catat Tabungan</a>
+<a href="{{ url_for('user.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('user.climbing_info') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+<a href="{{ url_for('user.climbing_route') }}"><span class="nav-icon">🗺️</span> Rute Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Halo, {{ user.full_name }}! 👋</h2>
+  <p>Pantau progress tabungan pendakianmu di sini.</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">🎯</div>
+    <div class="stat-info">
+      <div class="stat-label">Target Tabungan</div>
+      <div class="stat-value" data-rupiah="{{ user.target_amount or 0 }}">—</div>
+    </div>
+  </div>
+
+  <div class="stat-card accent">
+    <div class="stat-icon">💰</div>
+    <div class="stat-info">
+      <div class="stat-label">Sudah Terkumpul</div>
+      <div class="stat-value" data-rupiah="{{ user.total_verified }}">—</div>
+    </div>
+  </div>
+
+  <div class="stat-card danger">
+    <div class="stat-icon">📉</div>
+    <div class="stat-info">
+      <div class="stat-label">Kekurangan</div>
+      <div class="stat-value" data-rupiah="{{ user.shortfall or 0 }}">—</div>
+    </div>
+  </div>
+
+  <div class="stat-card info">
+    <div class="stat-icon">📊</div>
+    <div class="stat-info">
+      <div class="stat-label">Progress</div>
+      <div class="stat-value">{{ user.progress_percent }}%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="card mb-2">
+  <div class="card-header">
+    <h3>📊 Progress Tabungan</h3>
+    <a href="{{ url_for('user.add_saving') }}" class="btn btn-primary btn-sm">+ Catat Tabungan</a>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Terkumpul</span>
+      <span>{{ user.progress_percent }}% dari target</span>
+    </div>
+    <div class="progress-bar-bg" style="height:18px;">
+      <div class="progress-bar-fill {% if user.progress_percent >= 100 %}full{% endif %}"
+           data-width="{{ user.progress_percent }}"
+           style="height:18px;"></div>
+    </div>
+  </div>
+  {% if user.progress_percent >= 100 %}
+  <p class="text-success fw-bold mt-1">🎉 Selamat! Kamu sudah mencapai target tabungan!</p>
+  {% elif user.progress_percent >= 75 %}
+  <p class="text-success mt-1">💪 Hampir sampai! Terus semangat menabung!</p>
+  {% elif user.progress_percent >= 50 %}
+  <p style="color:var(--accent-dark);" class="mt-1">👍 Sudah setengah jalan, tetap konsisten!</p>
+  {% else %}
+  <p class="text-muted mt-1">🚀 Yuk mulai menabung lebih rutin!</p>
+  {% endif %}
+</div>
+
+<!-- Climbing info snippet -->
+{% if active_event %}
+<div class="card mb-2">
+  <div class="card-header">
+    <h3>⛰️ Pendakian: {{ active_event.mountain_name }}</h3>
+    <a href="{{ url_for('user.climbing_info') }}" class="btn btn-ghost btn-sm">Detail →</a>
+  </div>
+  <div class="info-grid">
+    {% if active_event.climb_date %}
+    <div class="info-chip">
+      <div class="chip-label">📅 Tanggal</div>
+      <div class="chip-value">{{ active_event.climb_date }}</div>
+    </div>
+    {% endif %}
+    {% if active_event.meeting_point %}
+    <div class="info-chip">
+      <div class="chip-label">📍 Meeting Point</div>
+      <div class="chip-value">{{ active_event.meeting_point }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent savings -->
+<div class="card">
+  <div class="card-header">
+    <h3>📋 Tabungan Terakhir</h3>
+    <a href="{{ url_for('user.savings_history') }}" class="btn btn-ghost btn-sm">Lihat semua →</a>
+  </div>
+
+  {% if recent_savings %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Jumlah</th>
+          <th>Keterangan</th>
+          <th>Status</th>
+          <th>Tanggal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_savings %}
+        <tr>
+          <td><strong data-rupiah="{{ s.amount }}">—</strong></td>
+          <td>{{ s.description or '—' }}</td>
+          <td>
+            {% if s.status == 'pending' %}
+              <span class="badge badge-warning">⏳ Menunggu</span>
+            {% elif s.status == 'verified' %}
+              <span class="badge badge-success">✅ Disetujui</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Ditolak</span>
+            {% endif %}
+          </td>
+          <td>{{ s.submitted_at.strftime('%d %b %Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:24px;">
+    <p>Belum ada catatan tabungan. <a href="{{ url_for('user.add_saving') }}">Catat sekarang</a>.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

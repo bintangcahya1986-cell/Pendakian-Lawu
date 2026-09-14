@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Rute Pendakian — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Rute Pendakian{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu</span>
+<a href="{{ url_for('user.dashboard') }}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a href="{{ url_for('user.add_saving') }}"><span class="nav-icon">💰</span> Catat Tabungan</a>
+<a href="{{ url_for('user.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('user.climbing_info') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+<a href="{{ url_for('user.climbing_route') }}" class="active"><span class="nav-icon">🗺️</span> Rute Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center flex-wrap gap-1">
+  <div>
+    <h2>🗺️ Rute Pendakian</h2>
+    {% if event %}
+    <p>{{ event.mountain_name }} — Itinerary & Pos Pendakian</p>
+    {% endif %}
+  </div>
+  {% if event %}
+  <a href="{{ url_for('user.climbing_info') }}" class="btn btn-ghost btn-sm">← Info Pendakian</a>
+  {% endif %}
+</div>
+
+{% if event and event.route_items %}
+
+<!-- Legend -->
+<div class="d-flex gap-1 flex-wrap mb-2" style="font-size:.82rem;">
+  <span style="display:flex;align-items:center;gap:4px;"><span style="color:var(--green-light);">●</span> Pos/Checkpoint</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="color:var(--accent);">●</span> Catatan</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="color:var(--info);">●</span> Gambar</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="color:var(--warning);">●</span> Peta</span>
+</div>
+
+<div class="route-timeline">
+  {% for item in event.route_items %}
+  <div class="route-item item-{{ item.item_type }}">
+    <div class="route-item-card">
+      <h4>
+        {% if item.item_type == 'checkpoint' %}🏔️
+        {% elif item.item_type == 'note' %}📝
+        {% elif item.item_type == 'image' %}🖼️
+        {% else %}🗺️{% endif %}
+        {{ item.title }}
+      </h4>
+
+      <div class="route-item-meta">
+        {% if item.elevation %}
+          <span>⬆️ {{ item.elevation }}</span>
+        {% endif %}
+        {% if item.duration %}
+          <span>⏱️ {{ item.duration }}</span>
+        {% endif %}
+      </div>
+
+      {% if item.content %}
+        {% if item.item_type == 'map_link' %}
+          <a href="{{ item.content }}" target="_blank" rel="noopener"
+             class="btn btn-ghost btn-sm" style="margin-top:6px;">
+            🗺️ Buka di Peta
+          </a>
+        {% elif item.item_type == 'image' %}
+          <div style="margin-top:8px;">
+            <img src="{{ item.content }}" alt="{{ item.title }}"
+                 style="max-width:100%;border-radius:8px;max-height:300px;object-fit:cover;"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+            <a href="{{ item.content }}" target="_blank" rel="noopener"
+               style="display:none;" class="btn btn-ghost btn-sm">🖼️ Lihat Gambar</a>
+          </div>
+        {% else %}
+          <p class="route-item-content">{{ item.content }}</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif event %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">🗺️</div>
+    <p>Belum ada item rute yang ditambahkan Admin.</p>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">⛰️</div>
+    <p>Belum ada informasi pendakian yang tersedia.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

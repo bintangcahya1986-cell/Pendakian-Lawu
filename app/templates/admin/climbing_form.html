@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% set is_edit = (action == 'edit') %}
+{% block title %}{{ 'Edit' if is_edit else 'Tambah' }} Info Pendakian — Pendakian Lawu{% endblock %}
+{% block topbar_title %}{{ 'Edit' if is_edit else 'Tambah' }} Info Pendakian{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}" class="active"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ '✏️ Edit' if is_edit else '➕ Tambah' }} Info Pendakian</h2>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <form method="POST" novalidate>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="mountain_name">Nama Gunung <span class="required">*</span></label>
+        <input type="text" id="mountain_name" name="mountain_name" class="form-control"
+               value="{{ form.get('mountain_name', event.mountain_name if is_edit and event else '') }}"
+               placeholder="Contoh: Gunung Lawu" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="climb_date">Tanggal Pendakian</label>
+        <input type="text" id="climb_date" name="climb_date" class="form-control"
+               value="{{ form.get('climb_date', event.climb_date if is_edit and event else '') }}"
+               placeholder="Contoh: 17 Agustus 2025" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="meeting_point">Meeting Point</label>
+      <input type="text" id="meeting_point" name="meeting_point" class="form-control"
+             value="{{ form.get('meeting_point', event.meeting_point if is_edit and event else '') }}"
+             placeholder="Contoh: Basecamp Cemoro Kandang" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">Deskripsi</label>
+      <textarea id="description" name="description" class="form-control"
+                placeholder="Informasi umum tentang pendakian ini...">{{ form.get('description', event.description if is_edit and event else '') }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="equipment_notes">Perlengkapan yang Perlu Dibawa</label>
+      <textarea id="equipment_notes" name="equipment_notes" class="form-control" rows="5"
+                placeholder="Tulis daftar perlengkapan yang harus dibawa...">{{ form.get('equipment_notes', event.equipment_notes if is_edit and event else '') }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="important_notes">Catatan Penting Lainnya</label>
+      <textarea id="important_notes" name="important_notes" class="form-control" rows="4"
+                placeholder="Aturan, larangan, tips, dll...">{{ form.get('important_notes', event.important_notes if is_edit and event else '') }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" name="is_active" value="1"
+               {{ 'checked' if (is_edit and event and event.is_active) or (not is_edit) }} />
+        <span class="form-label mb-0">Jadikan sebagai Event Aktif</span>
+      </label>
+      <div class="form-hint">Event aktif akan ditampilkan di dashboard peserta.</div>
+    </div>
+
+    <div class="d-flex gap-1">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Simpan' if is_edit else '➕ Tambah Event' }}
+      </button>
+      <a href="{{ url_for('admin.climbing_list') }}" class="btn btn-ghost">Batal</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

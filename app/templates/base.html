@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Pendakian Lawu{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Flash messages -->
+<div class="flash-container" id="flashContainer">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}" role="alert">
+        <span>
+          {% if category == 'success' %}✅{% elif category == 'error' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        </span>
+        <span>{{ message }}</span>
+        <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Tutup">✕</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⛰️</div>
+      <h1>Pendakian Lawu</h1>
+      <p>Tabungan Pendakian</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      {% block sidebar_nav %}{% endblock %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}">
+        <span>🚪</span> Keluar
+      </a>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+        <span class="topbar-title">{% block topbar_title %}Dashboard{% endblock %}</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-user">
+          <div class="avatar">{{ session.full_name[0]|upper if session.full_name else 'U' }}</div>
+          <div>
+            <div style="font-weight:600;color:var(--gray-800);">{{ session.full_name }}</div>
+            <div style="font-size:.75rem;text-transform:capitalize;">{{ session.role }}</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-body">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

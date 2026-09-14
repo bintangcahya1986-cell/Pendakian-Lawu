@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Riwayat Tabungan — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Riwayat Tabungan Saya{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu</span>
+<a href="{{ url_for('user.dashboard') }}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a href="{{ url_for('user.add_saving') }}"><span class="nav-icon">💰</span> Catat Tabungan</a>
+<a href="{{ url_for('user.savings_history') }}" class="active"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('user.climbing_info') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+<a href="{{ url_for('user.climbing_route') }}"><span class="nav-icon">🗺️</span> Rute Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>📋 Riwayat Tabungan</h2>
+  <p>Semua catatan tabungan yang pernah kamu kirimkan.</p>
+</div>
+
+<!-- Summary stats -->
+<div class="stats-grid mb-2">
+  {% set verified_savings = savings_list | selectattr('status','eq','verified') | list %}
+  {% set pending_savings  = savings_list | selectattr('status','eq','pending')  | list %}
+  {% set rejected_savings = savings_list | selectattr('status','eq','rejected') | list %}
+
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Catatan</div>
+      <div class="stat-value">{{ savings_list | length }}</div>
+    </div>
+  </div>
+  <div class="stat-card accent">
+    <div class="stat-icon">✅</div>
+    <div class="stat-info">
+      <div class="stat-label">Disetujui</div>
+      <div class="stat-value">{{ verified_savings | length }}</div>
+      <div class="stat-sub" data-rupiah="{{ verified_savings | sum(attribute='amount') }}">—</div>
+    </div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-info">
+      <div class="stat-label">Menunggu</div>
+      <div class="stat-value">{{ pending_savings | length }}</div>
+    </div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-icon">❌</div>
+    <div class="stat-info">
+      <div class="stat-label">Ditolak</div>
+      <div class="stat-value">{{ rejected_savings | length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="d-flex gap-1 mb-2 flex-wrap">
+  <a href="{{ url_for('user.savings_history') }}"
+     class="btn btn-sm {{ 'btn-primary' if not selected_status else 'btn-ghost' }}">
+    Semua
+  </a>
+  <a href="{{ url_for('user.savings_history', status='verified') }}"
+     class="btn btn-sm {{ 'btn-primary' if selected_status == 'verified' else 'btn-ghost' }}">
+    ✅ Disetujui
+  </a>
+  <a href="{{ url_for('user.savings_history', status='pending') }}"
+     class="btn btn-sm {{ 'btn-primary' if selected_status == 'pending' else 'btn-ghost' }}">
+    ⏳ Menunggu
+  </a>
+  <a href="{{ url_for('user.savings_history', status='rejected') }}"
+     class="btn btn-sm {{ 'btn-primary' if selected_status == 'rejected' else 'btn-ghost' }}">
+    ❌ Ditolak
+  </a>
+</div>
+
+<div class="card">
+  {% if savings_list %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Jumlah</th>
+          <th>Keterangan</th>
+          <th>Status</th>
+          <th>Tanggal Kirim</th>
+          <th>Tanggal Proses</th>
+          <th>Catatan Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in savings_list %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong data-rupiah="{{ s.amount }}">—</strong></td>
+          <td>{{ s.description or '—' }}</td>
+          <td>
+            {% if s.status == 'pending' %}
+              <span class="badge badge-warning">⏳ Menunggu</span>
+            {% elif s.status == 'verified' %}
+              <span class="badge badge-success">✅ Disetujui</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Ditolak</span>
+            {% endif %}
+          </td>
+          <td>{{ s.submitted_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>{{ s.verified_at.strftime('%d %b %Y') if s.verified_at else '—' }}</td>
+          <td>
+            {% if s.rejection_note %}
+              <span style="font-size:.82rem;color:var(--danger);">{{ s.rejection_note }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p>
+      {% if selected_status %}
+        Tidak ada tabungan dengan status ini.
+      {% else %}
+        Belum ada catatan tabungan. <a href="{{ url_for('user.add_saving') }}">Catat sekarang</a>.
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

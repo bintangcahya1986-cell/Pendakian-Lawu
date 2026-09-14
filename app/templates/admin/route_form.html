@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% set is_edit = (action == 'edit') %}
+{% block title %}{{ 'Edit' if is_edit else 'Tambah' }} Item Rute — Pendakian Lawu{% endblock %}
+{% block topbar_title %}{{ 'Edit' if is_edit else 'Tambah' }} Item Rute{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}" class="active"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ '✏️ Edit' if is_edit else '➕ Tambah' }} Item Rute</h2>
+  <p>Event: <strong>{{ event.mountain_name }}</strong></p>
+</div>
+
+<div class="card" style="max-width:580px;">
+  <form method="POST" novalidate>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="title">Judul <span class="required">*</span></label>
+        <input type="text" id="title" name="title" class="form-control"
+               value="{{ form.get('title', item.title if is_edit and item else '') }}"
+               placeholder="Contoh: Pos 1 - Watu Kapur" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="item_type">Tipe Item</label>
+        <select id="item_type" name="item_type" class="form-control" onchange="updateContentHint()">
+          {% set current_type = form.get('item_type', item.item_type if is_edit and item else 'checkpoint') %}
+          <option value="checkpoint" {{ 'selected' if current_type == 'checkpoint' }}>🏔️ Pos/Checkpoint</option>
+          <option value="note"       {{ 'selected' if current_type == 'note' }}>📝 Catatan</option>
+          <option value="image"      {{ 'selected' if current_type == 'image' }}>🖼️ Gambar (URL)</option>
+          <option value="map_link"   {{ 'selected' if current_type == 'map_link' }}>🗺️ Tautan Peta</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="elevation">Ketinggian</label>
+        <input type="text" id="elevation" name="elevation" class="form-control"
+               value="{{ form.get('elevation', item.elevation if is_edit and item else '') }}"
+               placeholder="Contoh: 2.900 mdpl" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="duration">Estimasi Waktu</label>
+        <input type="text" id="duration" name="duration" class="form-control"
+               value="{{ form.get('duration', item.duration if is_edit and item else '') }}"
+               placeholder="Contoh: ± 2 jam" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="order_index">Urutan</label>
+      <input type="number" id="order_index" name="order_index" class="form-control"
+             value="{{ form.get('order_index', item.order_index if is_edit and item else 0) }}"
+             min="0" style="max-width:120px;" />
+      <div class="form-hint">Angka lebih kecil ditampilkan lebih dahulu (mulai dari 0).</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="content" id="contentLabel">Konten / Deskripsi</label>
+      <textarea id="content" name="content" class="form-control" rows="4"
+                id-placeholder="contentPlaceholder"
+                placeholder="Deskripsi pos, catatan penting, URL gambar, atau link Google Maps...">{{ form.get('content', item.content if is_edit and item else '') }}</textarea>
+      <div class="form-hint" id="contentHint">Isi deskripsi, URL gambar, atau tautan peta.</div>
+    </div>
+
+    <div class="d-flex gap-1">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Simpan' if is_edit else '➕ Tambah Item' }}
+      </button>
+      <a href="{{ url_for('admin.route_list', event_id=event.id) }}" class="btn btn-ghost">Batal</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateContentHint() {
+  const type = document.getElementById('item_type').value;
+  const hint = document.getElementById('contentHint');
+  const textarea = document.getElementById('content');
+  const hints = {
+    checkpoint: 'Tulis deskripsi pos ini.',
+    note: 'Tulis catatan penting untuk pendaki.',
+    image: 'Masukkan URL gambar (https://...).',
+    map_link: 'Masukkan link Google Maps atau peta lainnya.'
+  };
+  hint.textContent = hints[type] || '';
+  const placeholders = {
+    checkpoint: 'Deskripsi kondisi pos, fasilitas, dll.',
+    note: 'Catatan penting: larangan, tips, peringatan...',
+    image: 'https://example.com/foto-pos1.jpg',
+    map_link: 'https://maps.google.com/...'
+  };
+  textarea.placeholder = placeholders[type] || '';
+}
+updateContentHint();
+</script>
+{% endblock %}

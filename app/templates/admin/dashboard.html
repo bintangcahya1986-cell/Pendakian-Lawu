@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Dashboard Admin{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}" class="active">
+  <span class="nav-icon">📊</span> Dashboard
+</a>
+<a href="{{ url_for('admin.participants') }}">
+  <span class="nav-icon">👥</span> Peserta
+</a>
+<a href="{{ url_for('admin.verifications') }}">
+  <span class="nav-icon">✅</span> Verifikasi Tabungan
+  {% if pending_count > 0 %}
+    <span class="badge badge-warning" style="margin-left:auto;">{{ pending_count }}</span>
+  {% endif %}
+</a>
+<a href="{{ url_for('admin.savings_history') }}">
+  <span class="nav-icon">📋</span> Riwayat Tabungan
+</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}">
+  <span class="nav-icon">⛰️</span> Info Pendakian
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Selamat datang, {{ session.full_name }}! 👋</h2>
+  <p>Ringkasan tabungan pendakian semua peserta.</p>
+</div>
+
+<!-- Stats grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Peserta</div>
+      <div class="stat-value">{{ participants | length }}</div>
+      <div class="stat-sub">{{ participants | selectattr('is_active') | list | length }} aktif</div>
+    </div>
+  </div>
+
+  <div class="stat-card accent">
+    <div class="stat-icon">💰</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Tabungan Terverifikasi</div>
+      <div class="stat-value" data-rupiah="{{ total_verified }}">—</div>
+    </div>
+  </div>
+
+  <div class="stat-card warning">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-info">
+      <div class="stat-label">Menunggu Verifikasi</div>
+      <div class="stat-value">{{ pending_count }}</div>
+      <div class="stat-sub">
+        <a href="{{ url_for('admin.verifications') }}" style="color:var(--accent-dark);">Proses sekarang →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card info">
+    <div class="stat-icon">⛰️</div>
+    <div class="stat-info">
+      <div class="stat-label">Pendakian Aktif</div>
+      <div class="stat-value" style="font-size:1rem;">
+        {{ active_event.mountain_name if active_event else '—' }}
+      </div>
+      <div class="stat-sub">{{ active_event.climb_date if active_event else 'Belum ada' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Participants progress table -->
+<div class="card mb-2">
+  <div class="card-header">
+    <h3>📈 Progress Tabungan Peserta</h3>
+    <a href="{{ url_for('admin.participants') }}" class="btn btn-ghost btn-sm">Lihat semua →</a>
+  </div>
+
+  {% if participants %}
+  <div class="table-wrap">
+    <table id="participantsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nama</th>
+          <th>Username</th>
+          <th>Target</th>
+          <th>Terkumpul</th>
+          <th>Kekurangan</th>
+          <th>Progress</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in participants %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-name">{{ u.full_name }}</td>
+          <td class="td-mono">{{ u.username }}</td>
+          <td data-rupiah="{{ u.target_amount or 0 }}">—</td>
+          <td data-rupiah="{{ u.total_verified }}">—</td>
+          <td data-rupiah="{{ u.shortfall or 0 }}">—</td>
+          <td style="min-width:140px;">
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span>{{ u.progress_percent }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill {% if u.progress_percent >= 100 %}full{% endif %}"
+                     data-width="{{ u.progress_percent }}"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-active">● Aktif</span>
+            {% else %}
+              <span class="badge badge-inactive">● Nonaktif</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>Belum ada peserta. <a href="{{ url_for('admin.add_participant') }}">Tambah peserta</a>.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Pending verifications preview -->
+<div class="card">
+  <div class="card-header">
+    <h3>⏳ Tabungan Menunggu Verifikasi</h3>
+    <a href="{{ url_for('admin.verifications') }}" class="btn btn-ghost btn-sm">Lihat semua →</a>
+  </div>
+
+  {% if pending_savings %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Peserta</th>
+          <th>Jumlah</th>
+          <th>Keterangan</th>
+          <th>Dikirim</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in pending_savings %}
+        <tr>
+          <td class="td-name">{{ s.participant.full_name }}</td>
+          <td data-rupiah="{{ s.amount }}">—</td>
+          <td>{{ s.description or '—' }}</td>
+          <td>{{ s.submitted_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>
+            <a href="{{ url_for('admin.verifications') }}" class="btn btn-primary btn-sm">Proses</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:24px;">
+    <p>✅ Tidak ada tabungan yang menunggu verifikasi.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

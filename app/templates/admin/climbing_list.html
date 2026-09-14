@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Info Pendakian — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Informasi Pendakian{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}" class="active"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center flex-wrap gap-1">
+  <div>
+    <h2>⛰️ Informasi Pendakian</h2>
+    <p>Kelola data event pendakian dan rute perjalanan.</p>
+  </div>
+  <a href="{{ url_for('admin.add_climbing') }}" class="btn btn-primary">➕ Tambah Event</a>
+</div>
+
+{% if events %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;">
+  {% for event in events %}
+  <div class="card" style="border-top:4px solid {{ 'var(--green-light)' if event.is_active else 'var(--gray-200)' }};">
+    <div class="d-flex justify-between align-center mb-1">
+      <h3 style="font-size:1.05rem;font-weight:700;color:var(--green-dark);">
+        {{ event.mountain_name }}
+      </h3>
+      {% if event.is_active %}
+        <span class="badge badge-success">🟢 Aktif</span>
+      {% else %}
+        <span class="badge badge-secondary">● Arsip</span>
+      {% endif %}
+    </div>
+
+    <div class="info-grid" style="margin-bottom:14px;">
+      <div class="info-chip">
+        <div class="chip-label">📅 Tanggal</div>
+        <div class="chip-value">{{ event.climb_date or '—' }}</div>
+      </div>
+      <div class="info-chip">
+        <div class="chip-label">📍 Meeting Point</div>
+        <div class="chip-value">{{ event.meeting_point or '—' }}</div>
+      </div>
+    </div>
+
+    {% if event.description %}
+    <p style="font-size:.85rem;color:var(--gray-600);margin-bottom:12px;
+              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+      {{ event.description }}
+    </p>
+    {% endif %}
+
+    <div class="d-flex gap-1 flex-wrap">
+      <a href="{{ url_for('admin.edit_climbing', event_id=event.id) }}"
+         class="btn btn-ghost btn-sm">✏️ Edit</a>
+      <a href="{{ url_for('admin.route_list', event_id=event.id) }}"
+         class="btn btn-outline btn-sm">🗺️ Rute ({{ event.route_items | length }})</a>
+      <form method="POST" action="{{ url_for('admin.delete_climbing', event_id=event.id) }}"
+            onsubmit="return confirm('Hapus event pendakian ini? Semua rute akan ikut terhapus.')">
+        <button type="submit" class="btn btn-danger btn-sm">🗑️ Hapus</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">⛰️</div>
+    <p>Belum ada event pendakian. <a href="{{ url_for('admin.add_climbing') }}">Tambah sekarang</a>.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

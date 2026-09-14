@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Verifikasi Tabungan — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Verifikasi Tabungan{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}" class="active"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>✅ Verifikasi Tabungan</h2>
+  <p>Setujui atau tolak catatan tabungan yang dikirim peserta.</p>
+</div>
+
+<!-- Status filter tabs -->
+<div class="d-flex gap-1 mb-2 flex-wrap">
+  <a href="{{ url_for('admin.verifications', status='pending') }}"
+     class="btn btn-sm {{ 'btn-primary' if status_filter == 'pending' else 'btn-ghost' }}">
+    ⏳ Menunggu
+  </a>
+  <a href="{{ url_for('admin.verifications', status='verified') }}"
+     class="btn btn-sm {{ 'btn-primary' if status_filter == 'verified' else 'btn-ghost' }}">
+    ✅ Disetujui
+  </a>
+  <a href="{{ url_for('admin.verifications', status='rejected') }}"
+     class="btn btn-sm {{ 'btn-primary' if status_filter == 'rejected' else 'btn-ghost' }}">
+    ❌ Ditolak
+  </a>
+</div>
+
+<div class="card">
+  {% if savings_list %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Peserta</th>
+          <th>Jumlah</th>
+          <th>Keterangan</th>
+          <th>Dikirim</th>
+          <th>Status</th>
+          {% if status_filter == 'pending' %}<th>Aksi</th>{% endif %}
+          {% if status_filter in ('verified','rejected') %}<th>Diproses</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in savings_list %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-name">{{ s.participant.full_name }}</td>
+          <td><strong data-rupiah="{{ s.amount }}">—</strong></td>
+          <td>{{ s.description or '—' }}</td>
+          <td>{{ s.submitted_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>
+            {% if s.status == 'pending' %}
+              <span class="badge badge-warning">⏳ Menunggu</span>
+            {% elif s.status == 'verified' %}
+              <span class="badge badge-success">✅ Disetujui</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Ditolak</span>
+              {% if s.rejection_note %}
+              <div style="font-size:.75rem;color:var(--gray-600);margin-top:2px;">{{ s.rejection_note }}</div>
+              {% endif %}
+            {% endif %}
+          </td>
+
+          {% if status_filter == 'pending' %}
+          <td>
+            <div class="d-flex gap-1">
+              <!-- Approve -->
+              <form method="POST" action="{{ url_for('admin.verify_saving', saving_id=s.id) }}"
+                    onsubmit="return confirm('Setujui tabungan ini?')">
+                <input type="hidden" name="action" value="approve" />
+                <button type="submit" class="btn btn-primary btn-sm">✅ Setuju</button>
+              </form>
+              <!-- Reject (opens modal) -->
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="openModal('rejectModal{{ s.id }}')">❌ Tolak</button>
+            </div>
+
+            <!-- Reject modal -->
+            <div class="modal-overlay" id="rejectModal{{ s.id }}">
+              <div class="modal">
+                <div class="modal-header">
+                  <h3>❌ Tolak Tabungan</h3>
+                  <button class="modal-close" onclick="closeModal('rejectModal{{ s.id }}')">✕</button>
+                </div>
+                <form method="POST" action="{{ url_for('admin.verify_saving', saving_id=s.id) }}">
+                  <input type="hidden" name="action" value="reject" />
+                  <div class="modal-body">
+                    <p style="margin-bottom:12px;">
+                      Menolak tabungan <strong data-rupiah="{{ s.amount }}">—</strong>
+                      dari <strong>{{ s.participant.full_name }}</strong>.
+                    </p>
+                    <div class="form-group mb-0">
+                      <label class="form-label" for="rejection_note_{{ s.id }}">Alasan Penolakan</label>
+                      <textarea id="rejection_note_{{ s.id }}" name="rejection_note"
+                                class="form-control" rows="3"
+                                placeholder="Tulis alasan penolakan (opsional)"></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost"
+                            onclick="closeModal('rejectModal{{ s.id }}')">Batal</button>
+                    <button type="submit" class="btn btn-danger">❌ Tolak Tabungan</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </td>
+          {% endif %}
+
+          {% if status_filter in ('verified','rejected') %}
+          <td>
+            {{ s.verified_at.strftime('%d %b %Y, %H:%M') if s.verified_at else '—' }}
+            {% if s.verifier %}
+            <div style="font-size:.75rem;color:var(--gray-400);">oleh {{ s.verifier.full_name }}</div>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">{% if status_filter == 'pending' %}⏳{% elif status_filter == 'verified' %}✅{% else %}❌{% endif %}</div>
+    <p>Tidak ada tabungan dengan status ini.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

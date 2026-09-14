@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Pendakian Lawu</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛰️</text></svg>" />
+</head>
+<body>
+
+<!-- Flash messages -->
+<div class="flash-container" id="flashContainer">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}" role="alert">
+        <span>{% if category == 'success' %}✅{% elif category == 'error' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}</span>
+        <span>{{ message }}</span>
+        <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">⛰️</div>
+      <h1>Pendakian Lawu</h1>
+      <p>Sistem Tabungan Pendakian</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <div class="login-input-wrap">
+          <span class="input-icon">👤</span>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-control"
+            placeholder="Masukkan username"
+            autocomplete="username"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="login-input-wrap">
+          <span class="input-icon">🔒</span>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            placeholder="Masukkan password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-dark btn-block btn-lg" style="margin-top:8px;">
+        🚀 Masuk
+      </button>
+    </form>
+
+    <p class="text-center text-muted mt-2" style="font-size:.8rem;">
+      Hubungi Admin jika belum punya akun.
+    </p>
+  </div>
+</div>
+
+<script>
+  // Auto-dismiss flash after 4s
+  setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(el => el.remove());
+  }, 4000);
+
+  // Basic client-side validation
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    if (!u || !p) {
+      e.preventDefault();
+      alert('Username dan password wajib diisi.');
+    }
+  });
+</script>
+</body>
+</html>

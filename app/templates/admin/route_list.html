@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Rute Pendakian — {{ event.mountain_name }}{% endblock %}
+{% block topbar_title %}Rute: {{ event.mountain_name }}{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}" class="active"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center flex-wrap gap-1">
+  <div>
+    <h2>🗺️ Rute: {{ event.mountain_name }}</h2>
+    <p>Kelola itinerary, pos, catatan, gambar, dan tautan peta.</p>
+  </div>
+  <div class="d-flex gap-1">
+    <a href="{{ url_for('admin.climbing_list') }}" class="btn btn-ghost btn-sm">← Kembali</a>
+    <a href="{{ url_for('admin.add_route_item', event_id=event.id) }}" class="btn btn-primary">
+      ➕ Tambah Item
+    </a>
+  </div>
+</div>
+
+{% if event.route_items %}
+<div class="route-timeline">
+  {% for item in event.route_items %}
+  <div class="route-item item-{{ item.item_type }}">
+    <div class="route-item-card">
+      <div class="d-flex justify-between align-center flex-wrap gap-1 mb-1">
+        <div class="d-flex align-center gap-1">
+          <span>
+            {% if item.item_type == 'checkpoint' %}🏔️
+            {% elif item.item_type == 'note' %}📝
+            {% elif item.item_type == 'image' %}🖼️
+            {% else %}🗺️{% endif %}
+          </span>
+          <h4 style="margin:0;">{{ item.title }}</h4>
+          <span class="badge badge-secondary" style="font-size:.7rem;">
+            #{{ item.order_index + 1 }}
+          </span>
+        </div>
+        <div class="d-flex gap-1">
+          <a href="{{ url_for('admin.edit_route_item', event_id=event.id, item_id=item.id) }}"
+             class="btn btn-ghost btn-sm">✏️</a>
+          <form method="POST"
+                action="{{ url_for('admin.delete_route_item', event_id=event.id, item_id=item.id) }}"
+                onsubmit="return confirm('Hapus item ini?')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="route-item-meta">
+        {% if item.elevation %}
+          <span>⬆️ {{ item.elevation }}</span>
+        {% endif %}
+        {% if item.duration %}
+          <span>⏱️ {{ item.duration }}</span>
+        {% endif %}
+        <span class="badge badge-info" style="font-size:.7rem;">{{ item.item_type }}</span>
+      </div>
+
+      {% if item.content %}
+        {% if item.item_type == 'map_link' %}
+          <a href="{{ item.content }}" target="_blank" rel="noopener"
+             class="btn btn-ghost btn-sm" style="margin-top:4px;">
+            🗺️ Buka Peta
+          </a>
+        {% elif item.item_type == 'image' %}
+          <a href="{{ item.content }}" target="_blank" rel="noopener"
+             class="btn btn-ghost btn-sm" style="margin-top:4px;">
+            🖼️ Lihat Gambar
+          </a>
+        {% else %}
+          <p class="route-item-content">{{ item.content }}</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">🗺️</div>
+    <p>Belum ada item rute. <a href="{{ url_for('admin.add_route_item', event_id=event.id) }}">Tambah sekarang</a>.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

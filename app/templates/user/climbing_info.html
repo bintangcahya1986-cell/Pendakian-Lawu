@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Info Pendakian — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Informasi Pendakian{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu</span>
+<a href="{{ url_for('user.dashboard') }}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a href="{{ url_for('user.add_saving') }}"><span class="nav-icon">💰</span> Catat Tabungan</a>
+<a href="{{ url_for('user.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('user.climbing_info') }}" class="active"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+<a href="{{ url_for('user.climbing_route') }}"><span class="nav-icon">🗺️</span> Rute Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>⛰️ Informasi Pendakian</h2>
+</div>
+
+{% if event %}
+<!-- Header banner -->
+<div class="card mb-2" style="background:linear-gradient(135deg,var(--green-dark),var(--green-mid));
+     color:var(--white);padding:28px;">
+  <h2 style="font-size:1.6rem;margin-bottom:4px;">{{ event.mountain_name }}</h2>
+  <span class="badge" style="background:rgba(255,255,255,.2);color:var(--white);">🟢 Pendakian Aktif</span>
+</div>
+
+<!-- Key info -->
+<div class="info-grid mb-2">
+  {% if event.climb_date %}
+  <div class="info-chip">
+    <div class="chip-label">📅 Tanggal Pendakian</div>
+    <div class="chip-value">{{ event.climb_date }}</div>
+  </div>
+  {% endif %}
+  {% if event.meeting_point %}
+  <div class="info-chip">
+    <div class="chip-label">📍 Meeting Point</div>
+    <div class="chip-value">{{ event.meeting_point }}</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Description -->
+{% if event.description %}
+<div class="card mb-2">
+  <div class="card-header"><h3>📖 Deskripsi</h3></div>
+  <p style="white-space:pre-wrap;color:var(--gray-600);font-size:.9rem;">{{ event.description }}</p>
+</div>
+{% endif %}
+
+<!-- Equipment -->
+{% if event.equipment_notes %}
+<div class="card mb-2">
+  <div class="card-header"><h3>🎒 Perlengkapan yang Perlu Dibawa</h3></div>
+  <pre style="white-space:pre-wrap;font-family:var(--font-main);color:var(--gray-600);font-size:.9rem;line-height:1.7;">{{ event.equipment_notes }}</pre>
+</div>
+{% endif %}
+
+<!-- Important notes -->
+{% if event.important_notes %}
+<div class="card mb-2" style="border-left:4px solid var(--accent);">
+  <div class="card-header"><h3>⚠️ Catatan Penting</h3></div>
+  <pre style="white-space:pre-wrap;font-family:var(--font-main);color:var(--gray-600);font-size:.9rem;line-height:1.7;">{{ event.important_notes }}</pre>
+</div>
+{% endif %}
+
+<div class="d-flex gap-1">
+  <a href="{{ url_for('user.climbing_route') }}" class="btn btn-primary">🗺️ Lihat Rute Pendakian</a>
+</div>
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">⛰️</div>
+    <p>Belum ada informasi pendakian yang dipublikasikan Admin.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

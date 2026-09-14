@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Riwayat Tabungan — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Riwayat Tabungan{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}" class="active"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>📋 Riwayat Tabungan</h2>
+  <p>Semua catatan tabungan dari seluruh peserta.</p>
+</div>
+
+<!-- Filters -->
+<div class="card mb-2">
+  <form method="GET" class="d-flex gap-1 flex-wrap align-center">
+    <select name="user_id" class="form-control" style="max-width:220px;">
+      <option value="">— Semua Peserta —</option>
+      {% for p in participants %}
+        <option value="{{ p.id }}" {{ 'selected' if selected_user == p.id }}>{{ p.full_name }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" class="form-control" style="max-width:180px;">
+      <option value="" {{ 'selected' if not selected_status }}>— Semua Status —</option>
+      <option value="pending"  {{ 'selected' if selected_status == 'pending' }}>⏳ Menunggu</option>
+      <option value="verified" {{ 'selected' if selected_status == 'verified' }}>✅ Disetujui</option>
+      <option value="rejected" {{ 'selected' if selected_status == 'rejected' }}>❌ Ditolak</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
+    <a href="{{ url_for('admin.savings_history') }}" class="btn btn-ghost btn-sm">Reset</a>
+  </form>
+</div>
+
+<div class="card">
+  {% if savings_list %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Peserta</th>
+          <th>Jumlah</th>
+          <th>Keterangan</th>
+          <th>Status</th>
+          <th>Dikirim</th>
+          <th>Diproses</th>
+          <th>Catatan Penolakan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in savings_list %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-name">{{ s.participant.full_name }}</td>
+          <td data-rupiah="{{ s.amount }}">—</td>
+          <td>{{ s.description or '—' }}</td>
+          <td>
+            {% if s.status == 'pending' %}
+              <span class="badge badge-warning">⏳ Menunggu</span>
+            {% elif s.status == 'verified' %}
+              <span class="badge badge-success">✅ Disetujui</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Ditolak</span>
+            {% endif %}
+          </td>
+          <td>{{ s.submitted_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>{{ s.verified_at.strftime('%d %b %Y') if s.verified_at else '—' }}</td>
+          <td>{{ s.rejection_note or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p>Tidak ada catatan tabungan yang cocok dengan filter.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -216,3 +216,38 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ── Pendakian Lawu — project-specific ─────────────────────
+
+# Flask instance folder (contains SQLite database & local config)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secret key / environment config
+.env
+*.env.*
+config.py
+config_local.py
+
+# Uploaded files (if added later)
+app/static/uploads/
+
+# OS & editor artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# VS Code workspace settings (keep extensions.json if desired, ignore local)
+.vscode/settings.json
+.vscode/launch.json
+
+# Kiro IDE
+.kiro/
+
+# Test result files
+test_*_result.txt

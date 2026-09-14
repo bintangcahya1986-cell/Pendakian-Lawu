@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Manajemen Peserta — Pendakian Lawu{% endblock %}
+{% block topbar_title %}Manajemen Peserta{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}" class="active"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center flex-wrap gap-1">
+  <div>
+    <h2>👥 Manajemen Peserta</h2>
+    <p>Kelola akun dan target tabungan peserta pendakian.</p>
+  </div>
+  <a href="{{ url_for('admin.add_participant') }}" class="btn btn-primary">
+    ➕ Tambah Peserta
+  </a>
+</div>
+
+<div class="card">
+  <div class="filter-bar">
+    <input type="text" id="searchInput" class="form-control"
+           placeholder="🔍 Cari nama atau username..." oninput="setupTableSearch('searchInput','participantsTable')(); return false;" />
+  </div>
+
+  {% if users %}
+  <div class="table-wrap">
+    <table id="participantsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nama Lengkap</th>
+          <th>Username</th>
+          <th>No. HP</th>
+          <th>Target</th>
+          <th>Terkumpul</th>
+          <th>Progress</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-name">{{ u.full_name }}</td>
+          <td class="td-mono">{{ u.username }}</td>
+          <td>{{ u.phone_number or '—' }}</td>
+          <td data-rupiah="{{ u.target_amount or 0 }}">—</td>
+          <td data-rupiah="{{ u.total_verified }}">—</td>
+          <td style="min-width:130px;">
+            <div class="progress-wrap">
+              <div class="progress-label"><span>{{ u.progress_percent }}%</span></div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill {% if u.progress_percent >= 100 %}full{% endif %}"
+                     data-width="{{ u.progress_percent }}"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-active">● Aktif</span>
+            {% else %}
+              <span class="badge badge-inactive">● Nonaktif</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{{ url_for('admin.edit_participant', user_id=u.id) }}"
+                 class="btn btn-ghost btn-sm">✏️ Edit</a>
+              <form method="POST"
+                    action="{{ url_for('admin.toggle_participant', user_id=u.id) }}"
+                    onsubmit="return confirm('{{ 'Nonaktifkan' if u.is_active else 'Aktifkan' }} akun {{ u.full_name }}?')">
+                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-primary{% endif %}">
+                  {{ '🚫 Nonaktifkan' if u.is_active else '✅ Aktifkan' }}
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>Belum ada peserta. <a href="{{ url_for('admin.add_participant') }}">Tambah sekarang</a>.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('searchInput').addEventListener('input', function() {
+    setupTableSearch('searchInput', 'participantsTable');
+  });
+  // Init search on load
+  setupTableSearch('searchInput', 'participantsTable');
+</script>
+{% endblock %}

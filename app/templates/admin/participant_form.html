@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% set is_edit = (action == 'edit') %}
+{% block title %}{{ 'Edit' if is_edit else 'Tambah' }} Peserta — Pendakian Lawu{% endblock %}
+{% block topbar_title %}{{ 'Edit' if is_edit else 'Tambah' }} Peserta{% endblock %}
+
+{% block sidebar_nav %}
+<span class="nav-section">Menu Utama</span>
+<a href="{{ url_for('admin.dashboard') }}"><span class="nav-icon">📊</span> Dashboard</a>
+<a href="{{ url_for('admin.participants') }}" class="active"><span class="nav-icon">👥</span> Peserta</a>
+<a href="{{ url_for('admin.verifications') }}"><span class="nav-icon">✅</span> Verifikasi Tabungan</a>
+<a href="{{ url_for('admin.savings_history') }}"><span class="nav-icon">📋</span> Riwayat Tabungan</a>
+<span class="nav-section">Pendakian</span>
+<a href="{{ url_for('admin.climbing_list') }}"><span class="nav-icon">⛰️</span> Info Pendakian</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>{{ '✏️ Edit' if is_edit else '➕ Tambah' }} Peserta</h2>
+  <p>{{ 'Perbarui data akun peserta.' if is_edit else 'Buat akun baru untuk peserta pendakian.' }}</p>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <form method="POST" id="participantForm" novalidate>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="full_name">Nama Lengkap <span class="required">*</span></label>
+        <input type="text" id="full_name" name="full_name" class="form-control"
+               value="{{ form.get('full_name', user.full_name if is_edit and user else '') }}"
+               placeholder="Nama lengkap peserta" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="username">Username <span class="required">*</span></label>
+        <input type="text" id="username" name="username" class="form-control"
+               value="{{ form.get('username', user.username if is_edit and user else '') }}"
+               placeholder="Username untuk login" required />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="password">
+          Password {% if not is_edit %}<span class="required">*</span>{% endif %}
+        </label>
+        <input type="password" id="password" name="password" class="form-control"
+               placeholder="{{ 'Kosongkan jika tidak diubah' if is_edit else 'Password untuk login' }}"
+               {{ 'required' if not is_edit else '' }} />
+        {% if is_edit %}
+        <div class="form-hint">Kosongkan jika tidak ingin mengubah password.</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="phone_number">No. HP</label>
+        <input type="tel" id="phone_number" name="phone_number" class="form-control"
+               value="{{ form.get('phone_number', user.phone_number if is_edit and user else '') }}"
+               placeholder="Opsional" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="target_amount">Target Tabungan (Rp)</label>
+      <input type="number" id="target_amount" name="target_amount" class="form-control"
+             value="{{ form.get('target_amount', user.target_amount if is_edit and user else '') }}"
+             placeholder="Contoh: 500000" min="0" step="1000" />
+      <div class="form-hint">Jumlah total yang harus dikumpulkan peserta ini.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="notes">Catatan</label>
+      <textarea id="notes" name="notes" class="form-control"
+                placeholder="Catatan tambahan (opsional)">{{ form.get('notes', user.notes if is_edit and user else '') }}</textarea>
+    </div>
+
+    {% if is_edit %}
+    <div class="form-group">
+      <label class="form-label">Status Akun</label>
+      <div class="d-flex gap-1">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="radio" name="is_active" value="1"
+                 {{ 'checked' if user and user.is_active else '' }} />
+          <span class="badge badge-active">● Aktif</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="radio" name="is_active" value="0"
+                 {{ 'checked' if user and not user.is_active else '' }} />
+          <span class="badge badge-inactive">● Nonaktif</span>
+        </label>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="d-flex gap-1 mt-2">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Simpan Perubahan' if is_edit else '➕ Tambah Peserta' }}
+      </button>
+      <a href="{{ url_for('admin.participants') }}" class="btn btn-ghost">Batal</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
