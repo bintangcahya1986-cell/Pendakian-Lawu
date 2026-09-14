@@ -28,8 +28,6 @@ Bukan untuk menerima pembayaran langsung — semua catatan tabungan diverifikasi
 Pendakian-Lawu/
 ├── run.py                    # Entry point
 ├── requirements.txt
-├── instance/
-│   └── pendakian.db          # SQLite database (dibuat otomatis)
 └── app/
     ├── __init__.py           # App factory + security middleware
     ├── database.py           # SQLAlchemy instance + seed
@@ -78,7 +76,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Jalankan server
+### 5. Konfigurasi environment
+Buat file `.env` di folder proyek:
+```env
+SECRET_KEY=kunci-rahasia-panjang
+ADMIN_PASSWORD=password-admin
+DATABASE_URL=postgresql://username:password@localhost:5432/pendakian_lawu
+```
+
+Pastikan database PostgreSQL tersebut sudah dibuat sebelum menjalankan aplikasi.
+
+### 6. Jalankan server
 ```bash
 python run.py
 ```
@@ -91,9 +99,9 @@ Buka browser → **http://localhost:5000**
 
 | Role | Username | Password |
 |------|----------|----------|
-| Admin | `admin` | `admin123` |
+| Admin | `admin` | Nilai `ADMIN_PASSWORD` di `.env` |
 
-> ⚠️ **Ganti password admin** segera setelah pertama kali login melalui fitur edit peserta, atau ubah langsung di `app/database.py` sebelum deploy.
+> ⚠️ Gunakan password yang kuat untuk `ADMIN_PASSWORD` sebelum deploy.
 
 ---
 
@@ -123,7 +131,7 @@ Buka browser → **http://localhost:5000**
 | Template engine | Jinja2 (via Flask) |
 | Backend | Python 3 · Flask 3 |
 | ORM | SQLAlchemy (Flask-SQLAlchemy) |
-| Database | SQLite |
+| Database | PostgreSQL |
 | Auth | Session-based (Werkzeug password hashing) |
 
 ---
@@ -141,10 +149,9 @@ Buka browser → **http://localhost:5000**
 
 ## 📝 Catatan Pengembangan
 
-- Database SQLite tersimpan di `instance/pendakian.db` (dibuat otomatis saat pertama kali jalan)
-- Untuk reset database, hapus file `instance/pendakian.db` lalu restart server
+- Tabel PostgreSQL dibuat otomatis saat pertama kali aplikasi dijalankan
+- Untuk reset database, hapus dan buat ulang database PostgreSQL sesuai `DATABASE_URL`
 - Untuk production, ganti `SECRET_KEY` via environment variable:
   ```bash
   export SECRET_KEY="kunci-rahasia-panjang-anda"
   ```
-- Untuk production juga disarankan migrasi ke PostgreSQL dengan mengubah `SQLALCHEMY_DATABASE_URI`
